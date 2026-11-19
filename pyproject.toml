@@ -1,0 +1,28 @@
+[build-system]
+requires = ["scikit-build-core>=0.9", "pybind11>=2.12"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "pressready"
+version = "0.1.0"
+description = "Print-PDF preflight: bleed, image resolution, color space, font embedding and total ink coverage, with a C++ pixel engine."
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "MIT" }
+authors = [{ name = "Varun S" }]
+dependencies = ["pymupdf>=1.24", "numpy>=1.24"]
+
+[project.optional-dependencies]
+web = ["fastapi>=0.110", "uvicorn>=0.27", "python-multipart>=0.0.9"]
+test = ["pytest>=7", "httpx>=0.27", "fastapi>=0.110", "uvicorn>=0.27", "python-multipart>=0.0.9"]
+
+[project.scripts]
+pressready = "pressready.cli:main"
+pressready-web = "pressready.web:main"
+
+[tool.scikit-build]
+wheel.packages = ["src/pressready"]
+cmake.build-type = "Release"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

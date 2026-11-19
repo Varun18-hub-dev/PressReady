@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>PressReady · PDF preflight</title>
+<style>
+:root{
+  --bg:#f5f6f8;--panel:#fff;--line:#dfe3e8;--text:#1d2329;--muted:#5d6874;
+  --accent:#d9480f;--accent-soft:#fff1e8;
+  --err:#b42318;--err-bg:#fef3f2;--warn:#93370d;--warn-bg:#fffaeb;--ok:#067647;--ok-bg:#ecfdf3;
+  --radius:10px;
+}
+*{box-sizing:border-box}
+body{margin:0;font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text)}
+header{display:flex;align-items:center;gap:12px;padding:14px 24px;background:#14181d;color:#fff}
+header .logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:17px;letter-spacing:.2px}
+header .mark{width:22px;height:22px;border-radius:5px;background:conic-gradient(#00a3e0 0 25%,#e6007e 0 50%,#ffd400 0 75%,#222 0)}
+header .tag{color:#9aa4ae;font-size:13px}
+header .engine{margin-left:auto;font-size:12px;color:#9aa4ae;border:1px solid #333b44;border-radius:999px;padding:2px 10px}
+.layout{display:grid;grid-template-columns:300px 1fr;gap:20px;max-width:1280px;margin:0 auto;padding:20px 24px}
+@media (max-width:860px){.layout{grid-template-columns:1fr}}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:16px}
+aside .panel+.panel{margin-top:16px}
+h2{font-size:13px;text-transform:uppercase;letter-spacing:.6px;color:var(--muted);margin:0 0 12px}
+#drop{border:2px dashed #c5ccd4;border-radius:var(--radius);padding:26px 14px;text-align:center;cursor:pointer;transition:.15s}
+#drop:hover,#drop.over{border-color:var(--accent);background:var(--accent-soft)}
+#drop b{display:block;font-size:15px;margin-bottom:2px}
+#drop span{color:var(--muted);font-size:13px}
+.btn{display:block;width:100%;padding:9px 12px;margin-top:8px;border:1px solid var(--line);background:#fff;border-radius:8px;font:inherit;cursor:pointer;text-align:left}
+.btn:hover{border-color:#aab3bd;background:#fafbfc}
+.btn small{display:block;color:var(--muted)}
+label.field{display:block;margin-bottom:12px}
+label.field span{display:flex;justify-content:space-between;font-size:13px;margin-bottom:4px}
+label.field output{font-weight:600}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.hint{font-size:12px;color:var(--muted);margin:4px 0 0}
+main{min-width:0}
+.empty{padding:48px 32px;text-align:center;color:var(--muted)}
+.empty h1{color:var(--text);font-size:22px;margin:0 0 8px}
+.checks{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:24px;text-align:left}
+.checks div{border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:#fff}
+.checks b{display:block;color:var(--text)}
+.summary{display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px}
+.summary h1{font-size:19px;margin:0;word-break:break-all}
+.badge{font-weight:700;font-size:12px;padding:3px 10px;border-radius:999px;letter-spacing:.4px}
+.PASS{background:var(--ok-bg);color:var(--ok)}.WARN{background:var(--warn-bg);color:var(--warn)}.FAIL{background:var(--err-bg);color:var(--err)}
+.meta{color:var(--muted);font-size:13px;width:100%}
+.counts{display:flex;gap:8px;margin-left:auto}
+.chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 12px;font:inherit;font-size:13px;cursor:pointer}
+.chip.on{background:#14181d;color:#fff;border-color:#14181d}
+.issues{margin-top:16px}
+.issue{display:grid;grid-template-columns:76px 46px 1fr;gap:10px;padding:10px 8px;border-top:1px solid #eef0f3;cursor:pointer;border-radius:6px}
+.issue:hover{background:#f7f8fa}
+.sev{font-weight:700;font-size:12px}
+.sev.error{color:var(--err)}.sev.warn{color:var(--warn)}
+.issue .pg{color:var(--muted);font-size:13px}
+.issue .msg b{font-weight:600}
+.issue .detail{display:block;color:var(--muted);font:12px ui-monospace,SFMono-Regular,Menlo,monospace;margin-top:2px;word-break:break-word}
+.none{padding:14px 8px;color:var(--ok);font-weight:600}
+.pagecard{margin-top:20px}
+.pagehead{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin-bottom:12px}
+.pagehead h3{margin:0;font-size:16px}
+.stat{font-size:13px;color:var(--muted)}.stat b{color:var(--text)}
+.seg{margin-left:auto;display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:5px 12px;font:inherit;font-size:13px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:#14181d;color:#fff}
+.view{display:flex;gap:16px;align-items:flex-start}
+.view img{max-width:min(100%,520px);border:1px solid var(--line);border-radius:6px;image-rendering:pixelated;background:#fff}
+.legend{font-size:13px;color:var(--muted);max-width:280px}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-2px;margin-right:6px}
+.flash{animation:flash 1.2s}
+@keyframes flash{0%{box-shadow:0 0 0 3px var(--accent)}100%{box-shadow:0 0 0 0 transparent}}
+.loading{display:flex;align-items:center;gap:10px;padding:40px;justify-content:center;color:var(--muted)}
+.spin{width:18px;height:18px;border:2px solid #cfd5dc;border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.error-box{background:var(--err-bg);color:var(--err);border:1px solid #fecdca;border-radius:8px;padding:12px}
+.dl{font-size:13px;color:var(--accent);background:none;border:0;cursor:pointer;padding:0;font:inherit}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo"><div class="mark"></div>PressReady</div>
+  <div class="tag">Preflight PDFs before they reach the press</div>
+  <div class="engine" id="engine">engine …</div>
+</header>
+
+<div class="layout">
+<aside>
+  <div class="panel">
+    <h2>Job</h2>
+    <div id="drop" tabindex="0" role="button" aria-label="Choose a PDF">
+      <b>Drop a PDF here</b><span>or click to choose · up to 50 MB</span>
+    </div>
+    <input type="file" id="file" accept="application/pdf,.pdf" hidden>
+    <button class="btn" data-sample="bad_job">Try a broken job<small>Low-res RGB images, missing font, 400% ink, no bleed</small></button>
+    <button class="btn" data-sample="good_job">Try a print-ready job<small>CMYK, embedded fonts, 3 mm bleed</small></button>
+  </div>
+
+  <div class="panel">
+    <h2>Press condition</h2>
+    <label class="field"><span>Ink limit (TAC) <output id="o_tac"></output></span>
+      <input type="range" id="tac_limit" min="200" max="400" step="10" value="300"></label>
+    <label class="field"><span>Bleed required <output id="o_bleed"></output></span>
+      <input type="range" id="bleed_mm" min="0" max="10" step="0.5" value="3"></label>
+    <label class="field"><span>Recommended image resolution <output id="o_min"></output></span>
+      <input type="range" id="min_dpi" min="100" max="600" step="25" value="300"></label>
+    <label class="field"><span>Hard minimum resolution <output id="o_err"></output></span>
+      <input type="range" id="error_dpi" min="50" max="400" step="25" value="150"></label>
+    <p class="hint">Newsprint ≈ 240%, uncoated ≈ 280%, coated sheet-fed ≈ 300–340%. Changes re-run the current job.</p>
+  </div>
+</aside>
+
+<main id="main">
+  <div class="panel empty">
+    <h1>Is this PDF ready for the press?</h1>
+    <p>Drop a print job on the left, or try one of the samples. Everything runs on this server; nothing is uploaded anywhere else.</p>
+    <div class="checks">
+      <div><b>Bleed</b>Artwork extends past the trim line</div>
+      <div><b>Image resolution</b>Effective dpi at placed size</div>
+      <div><b>Color space</b>RGB images that will shift in CMYK</div>
+      <div><b>Fonts</b>Every font embedded</div>
+      <div><b>Ink coverage</b>C+M+Y+K per pixel vs. press limit</div>
+    </div>
+  </div>
+</main>
+</div>
+
+<script>
+const $ = (s, el = document) => el.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const main = $("#main");
+const settings = {
+  tac_limit: [$("#tac_limit"), $("#o_tac"), v => v + "%"],
+  bleed_mm: [$("#bleed_mm"), $("#o_bleed"), v => v + " mm"],
+  min_dpi: [$("#min_dpi"), $("#o_min"), v => v + " dpi"],
+  error_dpi: [$("#error_dpi"), $("#o_err"), v => v + " dpi"],
+};
+let current = null;      // {kind:'file', file} | {kind:'sample', name}
+let lastReport = null;
+let filter = "all";
+let rerunTimer = null;
+
+fetch("/api/health").then(r => r.json()).then(h => $("#engine").textContent = `v${h.version} · pixel engine: ${h.engine}`);
+
+for (const [key, [input, out, fmt]] of Object.entries(settings)) {
+  const show = () => out.textContent = fmt(input.value);
+  show();
+  input.addEventListener("input", () => {
+    show();
+    // keep minimum <= recommended
+    if (key === "error_dpi" && +input.value > +settings.min_dpi[0].value) { settings.min_dpi[0].value = input.value; settings.min_dpi[1].textContent = input.value + " dpi"; }
+    if (key === "min_dpi" && +input.value < +settings.error_dpi[0].value) { settings.error_dpi[0].value = input.value; settings.error_dpi[1].textContent = input.value + " dpi"; }
+    if (current) { clearTimeout(rerunTimer); rerunTimer = setTimeout(run, 350); }
+  });
+}
+
+const drop = $("#drop"), fileInput = $("#file");
+drop.onclick = () => fileInput.click();
+drop.onkeydown = e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); fileInput.click(); } };
+fileInput.onchange = () => fileInput.files[0] && start({kind: "file", file: fileInput.files[0]});
+["dragenter", "dragover"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add("over"); }));
+["dragleave", "drop"].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove("over"); }));
+drop.addEventListener("drop", e => { const f = e.dataTransfer.files[0]; if (f) start({kind: "file", file: f}); });
+document.querySelectorAll("[data-sample]").forEach(b => b.onclick = () => start({kind: "sample", name: b.dataset.sample}));
+
+function start(src) { current = src; filter = "all"; run(); }
+
+async function run() {
+  const form = new FormData();
+  for (const [key, [input]] of Object.entries(settings)) form.append(key, input.value);
+  let url = "/api/preflight";
+  if (current.kind === "file") form.append("file", current.file);
+  else url = `/api/sample/${current.name}`;
+  if (!lastReport) main.innerHTML = `<div class="panel loading"><div class="spin"></div>Rendering pages and checking the job…</div>`;
+  try {
+    const res = await fetch(url, {method: "POST", body: form});
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || res.statusText);
+    lastReport = data;
+    render();
+  } catch (err) {
+    lastReport = null;
+    main.innerHTML = `<div class="panel"><div class="error-box"><b>Couldn't check this file.</b> ${esc(err.message)}</div></div>`;
+  }
+}
+
+function render() {
+  const r = lastReport;
+  const p = r.profile;
+  const shown = r.issues.filter(i => filter === "all" || i.severity === filter);
+  const issues = r.issues.length === 0
+    ? `<div class="none">✓ No problems found. This job is ready for the press.</div>`
+    : shown.map(i => `
+      <div class="issue" data-page="${i.page ?? ""}">
+        <span class="sev ${i.severity}">${i.severity.toUpperCase()}</span>
+        <span class="pg">${i.page ? "p." + i.page : "doc"}</span>
+        <span class="msg"><b>${esc(i.check)}</b> · ${esc(i.message)}
+          ${Object.keys(i.detail).length ? `<span class="detail">${esc(JSON.stringify(i.detail))}</span>` : ""}</span>
+      </div>`).join("");
+
+  const pages = r.previews.map(pv => {
+    const ink = r.ink.find(x => x.page === pv.page);
+    const n = r.issues.filter(i => i.page === pv.page).length;
+    return `
+    <div class="panel pagecard" id="page-${pv.page}">
+      <div class="pagehead">
+        <h3>Page ${pv.page}</h3>
+        <span class="stat">max ink <b>${ink.max_pct}%</b></span>
+        <span class="stat">mean <b>${ink.mean_pct}%</b></span>
+        <span class="stat">over limit <b>${(ink.over_fraction * 100).toFixed(1)}%</b></span>
+        <span class="stat"><b>${n}</b> finding${n === 1 ? "" : "s"}</span>
+        <div class="seg" data-page="${pv.page}">
+          <button class="on" data-view="page">Page</button><button data-view="ink">Ink coverage</button><button data-view="screen">Screened</button>
+        </div>
+      </div>
+      <div class="view">
+        <img alt="Page ${pv.page}" src="${pv.page_png}" data-page-png="${pv.page_png}" data-ink-png="${pv.ink_png}" data-screen-png="${pv.screen_png}">
+        <div class="legend" data-legend></div>
+      </div>
+    </div>`;
+  }).join("");
+
+  main.innerHTML = `
+    <div class="panel">
+      <div class="summary">
+        <h1>${esc(r.file)}</h1><span class="badge ${r.status}">${r.status}</span>
+        <div class="counts">
+          <button class="chip ${filter === "all" ? "on" : ""}" data-filter="all">All ${r.issues.length}</button>
+          <button class="chip ${filter === "error" ? "on" : ""}" data-filter="error">Errors ${r.summary.errors}</button>
+          <button class="chip ${filter === "warn" ? "on" : ""}" data-filter="warn">Warnings ${r.summary.warnings}</button>
+        </div>
+        <div class="meta">${r.pages} page${r.pages === 1 ? "" : "s"} · checked in ${r.elapsed_ms} ms ·
+          ink ≤ ${p.tac_limit_pct}% · bleed ${p.bleed_mm} mm · images ≥ ${p.min_dpi_warn} dpi (hard min ${p.min_dpi_error}) ·
+          <button class="dl" id="dl">download JSON</button></div>
+      </div>
+      <div class="issues">${issues}</div>
+    </div>
+    ${pages}`;
+
+  main.querySelectorAll("[data-filter]").forEach(b => b.onclick = () => { filter = b.dataset.filter; render(); });
+  main.querySelectorAll(".issue[data-page]").forEach(el => el.onclick = () => {
+    const card = $("#page-" + el.dataset.page);
+    if (!card) return;
+    card.scrollIntoView({behavior: "smooth", block: "start"});
+    card.classList.remove("flash"); void card.offsetWidth; card.classList.add("flash");
+  });
+  main.querySelectorAll(".seg").forEach(seg => {
+    const card = seg.closest(".pagecard"), img = $("img", card), legend = $("[data-legend]", card);
+    const set = view => {
+      seg.querySelectorAll("button").forEach(b => b.classList.toggle("on", b.dataset.view === view));
+      img.src = img.dataset[view + "Png"];
+      legend.innerHTML = {
+        page: "The page as the press sees it: rendered to CMYK, shown here on screen.",
+        ink: `<i style="background:#dc2626"></i>Ink over ${p.tac_limit_pct}%: will not dry, may set off.<br><i style="background:#9f9f9f"></i>Darker grey = more ink.`,
+        screen: "Each C, M, Y, K separation turned into 1-bit dots with Floyd–Steinberg error diffusion, as a RIP does before imaging.",
+      }[view];
+    };
+    seg.querySelectorAll("button").forEach(b => b.onclick = () => set(b.dataset.view));
+    set("page");
+  });
+  $("#dl").onclick = () => {
+    const {previews, ...json} = lastReport;
+    const a = Object.assign(document.createElement("a"), {
+      href: URL.createObjectURL(new Blob([JSON.stringify(json, null, 2)], {type: "application/json"})),
+      download: lastReport.file.replace(/\.pdf$/i, "") + "-preflight.json",
+    });
+    a.click(); URL.revokeObjectURL(a.href);
+  };
+}
+</script>
+</body>
+</html>
